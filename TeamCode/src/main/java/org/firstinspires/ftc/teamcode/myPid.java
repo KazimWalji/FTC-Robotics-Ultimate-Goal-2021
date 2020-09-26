@@ -31,13 +31,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -84,23 +82,104 @@ public class myPid extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            encoderPidTrap(3000,lf.getCurrentPosition(), 3000,rf.getCurrentPosition(), 3000,lr.getCurrentPosition(), 3000, rr.getCurrentPosition(), .9, 7.0);
+            turn_to_heading(10,0);
+            sleep(20000);
+            encoderPidTrap(1000,lf.getCurrentPosition(), 1000,rf.getCurrentPosition(), 1000,lr.getCurrentPosition(), 1000, rr.getCurrentPosition(), .8, 7.0);
+            sleep(1000);
+            turn_to_heading(150, -25);
+            encoderPidTrap(3000,lf.getCurrentPosition(), 3000,rf.getCurrentPosition(), 3000,lr.getCurrentPosition(), 3000, rr.getCurrentPosition(), .9, 7.0);
+            sleep(1000);
+            turn_to_heading(345,-25);
+            encoderPidTrap(4000,lf.getCurrentPosition(), 4000,rf.getCurrentPosition(), 4000,lr.getCurrentPosition(), 4000, rr.getCurrentPosition(), .9, 7.0);
+            encoderPidTrap(-1000,lf.getCurrentPosition(), -1000,rf.getCurrentPosition(), -1000,lr.getCurrentPosition(), -1000, rr.getCurrentPosition(), .9, 1.5);
+            sleep(30000);
+
+
 
         }
+    }
+    public void turn_to_heading(double target_heading, double speedModifier) {
+        lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        lr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        boolean right;
+        double currentHeading;
+        double degreesToTurn;
+        double wheelPower = 0;
+        ElapsedTime timeoutTimer = new ElapsedTime();
+
+        currentHeading = getHeading();
+        degreesToTurn = Math.abs(target_heading - currentHeading);
+
+        right = target_heading > currentHeading;
+
+        if (degreesToTurn > 180) {
+            right = !right;
+            degreesToTurn = 360 - degreesToTurn;
+        }
+
+        timeoutTimer.reset();
+        while (degreesToTurn > .7 && opModeIsActive() && timeoutTimer.seconds() < 4) {
+            telemetry.addData("currPos: ", getHeading());
+            telemetry.addData("target", target_heading);
+            telemetry.update();
+            if (speedModifier < 0) {
+                wheelPower = (Math.pow((degreesToTurn + 17) / -speedModifier, 3) + 5) / 100;
+            }
+            if (speedModifier == 0) {
+                wheelPower = (Math.pow(((degreesToTurn) / 30) + 1, 4) + 10) / 100;
+            }
+
+            if (right) {
+                wheelPower = -wheelPower;
+            }
+
+            lf.setPower(wheelPower);
+            lr.setPower(wheelPower);
+            rr.setPower(-wheelPower);
+            rf.setPower(-wheelPower);
+
+            currentHeading = getHeading();
+
+            degreesToTurn = Math.abs(target_heading - currentHeading);       // Calculate how far is remaining to turn
+
+            right = target_heading > currentHeading;
+
+            if (degreesToTurn > 180) {
+                right = !right;
+                degreesToTurn = 360 - degreesToTurn;
+            }
+
+        }
+        lf.setPower(0);
+        lr.setPower(0);
+        rr.setPower(0);
+        rf.setPower(0);
+
     }
     public void encoderPidTrap(int lF, int curlf, int rF, int currf, int lR, int curlr, int rR, int currr, double maxPow, double sec) {
         double totalDist = ((lF+lR+rR+rF)/4);
         double minPow = .45;
         boolean backwards = false;
+        double prevHeading = getHeading();
         ElapsedTime runTime = new ElapsedTime();
         runTime.reset();
-        while ((Math.abs(rr.getCurrentPosition()-rR) > 5 ||Math.abs(lr.getCurrentPosition()-lR) > 5 || Math.abs(rf.getCurrentPosition()-rF) > 5 || Math.abs(lf.getCurrentPosition()-lF) > 5) && opModeIsActive() && runTime.seconds() < 10.0) {
-            double dist = (((lF-lf.getCurrentPosition())+(rF-rf.getCurrentPosition())+(lR-lr.getCurrentPosition())+(rR-rr.getCurrentPosition()))/4)/totalDist;
+        while ((Math.abs((rr.getCurrentPosition()-currr)-rR) > 5 ||Math.abs((lr.getCurrentPosition()-curlr)-lR) > 5 || Math.abs((rf.getCurrentPosition()-currf)-rF) > 5 || Math.abs((lf.getCurrentPosition()-curlf)-lF) > 5) && opModeIsActive() && runTime.seconds() < 10.0) {
+            double dist = (((lF-(lf.getCurrentPosition()-curlf))+(rF-rf.getCurrentPosition())+(lR-(lr.getCurrentPosition()-curlr))+(rR-(rr.getCurrentPosition()-currr)))/4)/totalDist;
+            if(dist<0)
+            {
+                dist = -dist;
+                backwards = true;
+            }
             double power = -16* Math.pow((dist-.5),4) + 1;
             power = power * maxPow;
             if(power<=minPow && dist>0.8)
             {
                 power = minPow;
             }
+
             if(dist<0.015)
             {
                 lr.setPower(0);
@@ -123,16 +202,26 @@ public class myPid extends LinearOpMode {
             telemetry.addData("targ", rR);
             telemetry.addData("time", runTime.seconds());
             telemetry.update();
-            lf.setPower(power);
-            rf.setPower(power);
-            rr.setPower(power);
-            lr.setPower(power);
+            if(backwards)
+            {
+                power = -power;
+                lf.setPower(power);
+                rf.setPower(power);
+                rr.setPower(power);
+                lr.setPower(power);
+            }
+            else {
+                lf.setPower(power);
+                rf.setPower(power);
+                rr.setPower(power);
+                lr.setPower(power);
+            }
         }
+        lf.setPower(0);
         lr.setPower(0);
         rr.setPower(0);
         rf.setPower(0);
-        lf.setPower(0);
-        //turn_to_heading(0,0);
+        turn_to_heading(prevHeading,0);
     }
     public double getHeading() {
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);

@@ -29,17 +29,16 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 @Autonomous
 public class RoadRunnerAuto extends LinearOpMode {
@@ -78,10 +77,43 @@ public class RoadRunnerAuto extends LinearOpMode {
         lf.setDirection(DcMotorSimple.Direction.REVERSE);
         lr.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        waitForStart();
+        SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
 
+        waitForStart();
+        drive.setPoseEstimate(new Pose2d(-63,  -53, 0));
+        Pose2d startpos = new Pose2d(-63,  -53, 0);
         while (opModeIsActive()) {
-            //will start soon
+            Trajectory traj = drive.trajectoryBuilder(startpos)
+                    .splineTo(new Vector2d(0, -48), Math.toRadians(10))
+                    .build();
+
+            drive.followTrajectory(traj);
+
+            Trajectory traj1 = drive.trajectoryBuilder(traj.end())
+                    .lineTo(new Vector2d(38,-36))
+                    .build();
+
+            drive.followTrajectory(traj1);
+
+            Trajectory traj2 = drive.trajectoryBuilder(traj1.end())
+                    .splineTo(new Vector2d(-50, -26), Math.toRadians(170))
+                    .build();
+
+            drive.followTrajectory(traj2);
+
+            Trajectory traj3 = drive.trajectoryBuilder(traj2.end())
+                    .lineTo(new Vector2d(38,-36))
+                    .build();
+
+            drive.followTrajectory(traj3);
+
+            Trajectory traj4 = drive.trajectoryBuilder(traj3.end())
+                    .lineTo(new Vector2d(10,-36))
+                    .build();
+
+            drive.followTrajectory(traj4);
+            sleep(20000);
+
         }
     }
 
