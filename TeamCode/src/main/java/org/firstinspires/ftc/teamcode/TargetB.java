@@ -38,10 +38,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
 
 @Autonomous
-public class RoadRunnerAuto extends LinearOpMode {
+public class TargetB extends LinearOpMode {
 
     BNO055IMU imu;
 
@@ -84,37 +88,55 @@ public class RoadRunnerAuto extends LinearOpMode {
         Pose2d startpos = new Pose2d(-63,  -53, 0);
         while (opModeIsActive()) {
             Trajectory traj = drive.trajectoryBuilder(startpos)
-                    .splineTo(new Vector2d(0, -48), Math.toRadians(10))
+                    .splineTo(new Vector2d(0, -53), Math.toRadians(15))
                     .build();
 
             drive.followTrajectory(traj);
 
+            sleep(5000);
+
             Trajectory traj1 = drive.trajectoryBuilder(traj.end())
-                    .lineTo(new Vector2d(38,-36))
+                    .splineTo(new Vector2d(48,-53), Math.toRadians(0))
                     .build();
 
             drive.followTrajectory(traj1);
 
+            sleep(1000);
+
             Trajectory traj2 = drive.trajectoryBuilder(traj1.end())
-                    .splineTo(new Vector2d(-50, -26), Math.toRadians(170))
+                    .lineTo(new Vector2d(-50,2))
                     .build();
 
             drive.followTrajectory(traj2);
 
             Trajectory traj3 = drive.trajectoryBuilder(traj2.end())
-                    .lineTo(new Vector2d(38,-36))
+                    .lineTo(new Vector2d(-48,-12))
                     .build();
 
             drive.followTrajectory(traj3);
 
+            sleep(3000);
+
             Trajectory traj4 = drive.trajectoryBuilder(traj3.end())
-                    .lineTo(new Vector2d(10,-36))
+                    .lineTo(new Vector2d(48,-53))
                     .build();
 
             drive.followTrajectory(traj4);
-            sleep(20000);
+
+            sleep(1000);
+
+            Trajectory traj5 = drive.trajectoryBuilder(traj4.end())
+                    .lineTo(new Vector2d(10,-53))
+                    .build();
+
+            drive.followTrajectory(traj5);
+
+            sleep(30000);
 
         }
     }
-
+    public double getHeading() {
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        return (angles.firstAngle + 360) % 360;
+    }
 }
