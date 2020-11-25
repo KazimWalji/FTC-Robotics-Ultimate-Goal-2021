@@ -3,11 +3,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
@@ -32,30 +28,97 @@ public class TeleOP extends LinearOpMode {
     private DcMotor rf = null;
     private DcMotor lr = null;
     private DcMotor rr = null;
+    private DcMotor lift = null;
+    private Servo wobble = null;
+    private Servo left = null;
+    private Servo right = null;
+    private boolean buttonPrev = false;
 
     @Override
     public void runOpMode() {
 
-        lf = hardwareMap.get(DcMotor.class, "lf");
-        rf = hardwareMap.get(DcMotor.class, "rf");
-        lr = hardwareMap.get(DcMotor.class, "lr");
-        rr = hardwareMap.get(DcMotor.class, "rr");
+        wobble = hardwareMap.get(Servo.class, "scoop_servo");
+        left = hardwareMap.get(Servo.class, "left");
+        right = hardwareMap.get(Servo.class, "right");
+        lf = hardwareMap.get(DcMotor.class, "left_front");
+        rf = hardwareMap.get(DcMotor.class, "right_front");
+        lr = hardwareMap.get(DcMotor.class, "left_rear");
+        rr = hardwareMap.get(DcMotor.class, "right_rear");
+        lift = hardwareMap.get(DcMotor.class, "lift");
+
         lf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rf.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rr.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lift.setZeroPowerBehavior((DcMotor.ZeroPowerBehavior.BRAKE));
 
+        lift.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lr.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rf.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rr.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        lf.setDirection(DcMotorSimple.Direction.REVERSE);
-        lr.setDirection(DcMotorSimple.Direction.REVERSE);
+        rf.setDirection(DcMotorSimple.Direction.REVERSE);
+        rr.setDirection(DcMotorSimple.Direction.REVERSE);
+        lift.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        telemetry.addData("currPos", OfficialAuto.currPos);
+        telemetry.update();
+        left.setDirection(Servo.Direction.REVERSE);
         waitForStart();
-
+        right.setPosition(.8);
+        left.setPosition(.8);
         while (opModeIsActive()) {
+
+            telemetry.addData("armPos", lift.getCurrentPosition());
+            telemetry.update();
+            if (gamepad2.a) {
+
+                    left.setPosition(.3);
+                    right.setPosition(.3);
+            }
+            if(gamepad2.b)
+            {
+                left.setPosition(.18);
+                right.setPosition(.18);
+            }
+            if(gamepad2.x)
+            {
+                lift.setTargetPosition(1000);
+                lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                lift.setPower(.7);
+                while(lift.isBusy() && opModeIsActive())
+                {
+                    double r = Math.hypot(-gamepad1.left_stick_x, gamepad1.left_stick_y);
+                    double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
+                    double rightX = (-gamepad1.right_stick_x);
+                    final double v1 = r * Math.cos(robotAngle) + rightX;
+                    final double v2 = r * Math.sin(robotAngle) - rightX;
+                    final double v3 = r * Math.sin(robotAngle) + rightX;
+                    final double v4 = r * Math.cos(robotAngle) - rightX;
+
+                    double x = 1;
+
+                    lf.setPower(v1 * x);
+                    rf.setPower(v2 * x);
+                    lr.setPower(v3 * x);
+                    rr.setPower(v4 * x);
+                }
+                lift.setPower(0);
+            }
+            if (gamepad2.left_stick_y == 0) {
+
+                lift.setPower(0);
+            }
+            if (OfficialAuto.currPos != -1) {
+                if ((lift.getCurrentPosition() < OfficialAuto.currPos + 10) && -gamepad2.left_stick_y < 0) {
+                    lift.setPower(0);
+                } else {
+                    lift.setPower(-gamepad2.left_stick_y);
+                }
+            }
+
+            lift.setPower(-gamepad2.left_stick_y);
 
             double r = Math.hypot(-gamepad1.left_stick_x, gamepad1.left_stick_y);
             double robotAngle = Math.atan2(gamepad1.left_stick_y, -gamepad1.left_stick_x) - Math.PI / 4;
@@ -65,7 +128,7 @@ public class TeleOP extends LinearOpMode {
             final double v3 = r * Math.sin(robotAngle) + rightX;
             final double v4 = r * Math.cos(robotAngle) - rightX;
 
-            double x = 1.2;
+            double x = 1;
 
             lf.setPower(v1 * x);
             rf.setPower(v2 * x);
@@ -75,3 +138,4 @@ public class TeleOP extends LinearOpMode {
         }
     }
 }
+  

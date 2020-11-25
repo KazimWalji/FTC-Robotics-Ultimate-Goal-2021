@@ -1,9 +1,13 @@
 package org.firstinspires.ftc.teamcode;
+
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -11,7 +15,6 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
-import org.opencv.core.Rect;
 
 @Autonomous
 public class RingDetectionCV extends LinearOpMode {
@@ -27,6 +30,7 @@ public class RingDetectionCV extends LinearOpMode {
         pipeline = new StageSwitchingPipeline();
         phoneCam.setPipeline(pipeline);
         phoneCam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+        FtcDashboard.getInstance().startCameraStream(phoneCam, 0);
 
         waitForStart();
 
@@ -44,11 +48,11 @@ public class RingDetectionCV extends LinearOpMode {
             One,
             None
         }
-        static final Point topLeft = new Point(40,160);
+        static final Point topLeft = new Point(70,190);
         static final int width = 25;
         static final int height = 35;
-        final int fourRingsThreshold = 100;
-        final int oneRingThreshold = 122;
+        final int fourRingsThreshold = 105;
+        final int oneRingThreshold = 120;
         Point pointA = new Point(topLeft.x, topLeft.y);
         Point pointB = new Point(topLeft.x + width, topLeft.y + height);
 
@@ -87,7 +91,7 @@ public class RingDetectionCV extends LinearOpMode {
             if(avgCb < fourRingsThreshold) {
                 pos = ringPos.Four;
             }
-            if(avgCb > 122)
+            else if(avgCb > 122)
             {
                 pos = ringPos.None;
             }
