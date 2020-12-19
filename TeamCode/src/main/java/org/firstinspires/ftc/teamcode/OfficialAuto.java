@@ -26,8 +26,7 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 @Autonomous
-public class OfficialAuto extends LinearOpMode
-{
+public class OfficialAuto extends LinearOpMode {
     OpenCvCamera phoneCam;
     StageSwitchingPipeline pipeline;
 
@@ -38,10 +37,11 @@ public class OfficialAuto extends LinearOpMode
     private DcMotor lr = null;
     private DcMotor rr = null;
     private DcMotor lift = null;
-    private Servo   wobble = null;
+    private Servo wobble = null;
     private Servo left = null;
     private Servo right = null;
     public static int currPos = -1;
+
     @Override
     public void runOpMode() {
 
@@ -92,31 +92,29 @@ public class OfficialAuto extends LinearOpMode
         waitForStart();
         lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         left.setDirection(Servo.Direction.REVERSE);
+        double threshold = pipeline.getThreshold();
+        RingDetectionCV.StageSwitchingPipeline.ringPos pos = pipeline.getAnalysis();
         left.setPosition(.2);
         right.setPosition(.2);
         sleep(500);
-        right.setPosition(.7);
-        left.setPosition(.7);
+        right.setPosition(.6);
+        left.setPosition(.6);
         currPos = lift.getCurrentPosition();
-        drive.setPoseEstimate(new Pose2d(-63,  -53, 0));
-        Pose2d startpos = new Pose2d(-63,  -53, 0);
+        drive.setPoseEstimate(new Pose2d(-63, -53, 0));
+        Pose2d startpos = new Pose2d(-63, -53, 0);
 
 
         while (opModeIsActive()) {
-            double threshold = pipeline.getThreshold();
-            RingDetectionCV.StageSwitchingPipeline.ringPos pos = pipeline.getAnalysis();
-            if(pos == RingDetectionCV.StageSwitchingPipeline.ringPos.Four)
-            {
+            if (pos == RingDetectionCV.StageSwitchingPipeline.ringPos.Four) {
                 telemetry.addData("pos: ", pos);
                 telemetry.addData("thresh: ", threshold);
                 telemetry.update();
-                right.setPosition(.8);
                 Trajectory traj = drive.trajectoryBuilder(startpos)
-                        .lineTo(new Vector2d(55, -60)).build();
+                        .lineTo(new Vector2d(50, -67)).build();
 
                 drive.followTrajectory(traj);
 
-                sleep(2000);
+                sleep(200);
 
                 Trajectory traj1 = drive.trajectoryBuilder(traj.end())
                         .lineToLinearHeading(new Pose2d(-25, -8, Math.toRadians(0)))
@@ -131,54 +129,51 @@ public class OfficialAuto extends LinearOpMode
                 drive.followTrajectory(traj2);
 
                 Trajectory traj3 = drive.trajectoryBuilder(traj2.end())
-                        .strafeRight(20)
+                        .strafeRight(18.5)
                         .build();
 
                 drive.followTrajectory(traj3);
 
 
                 Trajectory traj4 = drive.trajectoryBuilder(traj3.end())
-                        .forward(5)
+                        .forward(11)
                         .build();
 
                 drive.followTrajectory(traj4);
 
                 sleep(1000);
                 right.setPosition(.18);
-                left.setPosition(.18);
-                sleep(2000);
+                left.setPosition(.3);
+                sleep(500);
 
                 Trajectory traj5 = drive.trajectoryBuilder(traj4.end())
-                        .strafeRight(21)
+                        .strafeRight(29)
                         .build();
 
                 drive.followTrajectory(traj5);
 
                 Trajectory traj6 = drive.trajectoryBuilder(traj5.end())
-                        .lineTo(new Vector2d(51, -65))
+                        .lineTo(new Vector2d(40, -65))
                         .build();
 
                 drive.followTrajectory(traj6);
 
-                right.setPosition(.3);
-                left.setPosition(.3);
+                right.setPosition(.5);
+                left.setPosition(.5);
                 sleep(1000);
 
                 Trajectory traj7 = drive.trajectoryBuilder(traj6.end())
-                        .back(40)
+                        .back(30)
                         .build();
 
                 drive.followTrajectory(traj7);
 
                 sleep(30000);
 
-            }
-            else if(pos == RingDetectionCV.StageSwitchingPipeline.ringPos.One)
-            {
+            } else if (pos == RingDetectionCV.StageSwitchingPipeline.ringPos.One) {
                 telemetry.addData("pos: ", pos);
                 telemetry.addData("thresh: ", threshold);
                 telemetry.update();
-                right.setPosition(.8);
                 Trajectory traj = drive.trajectoryBuilder(startpos)
                         .lineTo(new Vector2d(30, -40)).build();
 
@@ -186,7 +181,8 @@ public class OfficialAuto extends LinearOpMode
 
                 sleep(2000);
 
-                Trajectory traj1 = drive.trajectoryBuilder(traj.end())
+                Trajectory add = drive.trajectoryBuilder(traj.end()) .lineToLinearHeading(new Pose2d(25, -46, Math.toRadians(0))).build();
+                Trajectory traj1 = drive.trajectoryBuilder(add.end())
                         .back(95)
                         .build();
 
@@ -194,7 +190,7 @@ public class OfficialAuto extends LinearOpMode
 
 
                 Trajectory traj3 = drive.trajectoryBuilder(traj1.end())
-                        .strafeLeft(16)
+                        .strafeLeft(22)
                         .build();
 
                 drive.followTrajectory(traj3);
@@ -213,9 +209,7 @@ public class OfficialAuto extends LinearOpMode
                 drive.followTrajectory(traj5);
 
                 sleep(30000);
-            }
-            else if(pos == RingDetectionCV.StageSwitchingPipeline.ringPos.None)
-            {
+            } else if (pos == RingDetectionCV.StageSwitchingPipeline.ringPos.None) {
                 telemetry.addData("pos: ", pos);
                 telemetry.addData("thresh: ", threshold);
                 telemetry.update();
@@ -224,17 +218,17 @@ public class OfficialAuto extends LinearOpMode
                 telemetry.update();
 
                 Trajectory traj = drive.trajectoryBuilder(startpos)
-                        .lineTo(new Vector2d(0, -65)).build();
+                        .lineTo(new Vector2d(-1, -67)).build();
 
                 drive.followTrajectory(traj);
 
                 Trajectory traj1 = drive.trajectoryBuilder(traj.end())
-                        .back(63).build();
+                        .back(60).build();
 
                 drive.followTrajectory(traj1);
 
                 Trajectory traj2 = drive.trajectoryBuilder(traj1.end())
-                        .strafeLeft(40).build();
+                        .strafeLeft(42).build();
 
                 drive.followTrajectory(traj2);
 
@@ -243,30 +237,38 @@ public class OfficialAuto extends LinearOpMode
                         .lineTo(new Vector2d(0, -61)).build();
 
                 drive.followTrajectory(traj3);
+
+                Trajectory traj4 = drive.trajectoryBuilder(traj3.end())
+                        .back(20).build();
+
+                drive.followTrajectory(traj4);
+
+                Trajectory traj5 = drive.trajectoryBuilder(traj4.end())
+                        .strafeLeft(30).build();
+
+                drive.followTrajectory(traj5);
+
+                Trajectory traj6 = drive.trajectoryBuilder(traj5.end())
+                        .forward(30).build();
+
+                drive.followTrajectory(traj6);
                 sleep(30000);
             }
         }
     }
-    public void closeWobble()
-    {
-        wobble.setPosition(0.1);
-    }
-    public void openWobble()
-    {
-        wobble.setPosition(.7);
-    }
+
     public static class StageSwitchingPipeline extends OpenCvPipeline {
-        enum ringPos
-        {
+        enum ringPos {
             Four,
             One,
             None
         }
-        static final Point topLeft = new Point(60,190);
+
+        static final Point topLeft = new Point(52, 190);
         static final int width = 25;
         static final int height = 35;
-        final int fourRingsThreshold = 105;
-        final int oneRingThreshold = 120;
+        final int fourRingsThreshold = 107;
+        final int oneRingThreshold = 119;
         Point pointA = new Point(topLeft.x, topLeft.y);
         Point pointB = new Point(topLeft.x + width, topLeft.y + height);
 
@@ -277,18 +279,17 @@ public class OfficialAuto extends LinearOpMode
 
         private volatile RingDetectionCV.StageSwitchingPipeline.ringPos pos = RingDetectionCV.StageSwitchingPipeline.ringPos.Four;
 
-        void inputToCb(Mat input)
-        {
+        void inputToCb(Mat input) {
             Imgproc.cvtColor(input, YCrCb, Imgproc.COLOR_RGB2YCrCb);
             Core.extractChannel(YCrCb, Cb, 2);
         }
 
         @Override
-        public void init(Mat firstFrame)
-        {
+        public void init(Mat firstFrame) {
             inputToCb(firstFrame);
             box = Cb.submat(new Rect(pointA, pointB));
         }
+
         @Override
         public Mat processFrame(Mat input) {
             inputToCb(input);
@@ -298,33 +299,23 @@ public class OfficialAuto extends LinearOpMode
                     pointA, // First point which defines the rectangle
                     pointB, // Second point which defines the rectangle
                     new Scalar(0, 255, 0), 1);
-            if(avgCb < oneRingThreshold)
-            {
+            if (avgCb < oneRingThreshold) {
                 pos = RingDetectionCV.StageSwitchingPipeline.ringPos.One;
             }
-            if(avgCb < fourRingsThreshold) {
+            if (avgCb < fourRingsThreshold) {
                 pos = RingDetectionCV.StageSwitchingPipeline.ringPos.Four;
-            }
-            if(avgCb > 122)
-            {
+            } else if (avgCb > 122) {
                 pos = RingDetectionCV.StageSwitchingPipeline.ringPos.None;
             }
             return input;
         }
-        public RingDetectionCV.StageSwitchingPipeline.ringPos getAnalysis()
-        {
+
+        public RingDetectionCV.StageSwitchingPipeline.ringPos getAnalysis() {
             return pos;
         }
-        public int getThreshold()
-        {
+
+        public int getThreshold() {
             return avgCb;
-        }
-    }
-    public class getPos
-    {
-        public int pos()
-        {
-            return currPos;
         }
     }
 }
